@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Management</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            padding: 20px;
+            background-color: #f8f8f8;
+            border-bottom: 2px solid #ddd;
+            margin: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        a {
+            text-decoration: none;
+            color: #007BFF;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            display: inline-block;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        table th {
+            background-color: #007BFF;
+            color: #fff;
+        }
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .actions a {
+            margin-right: 10px;
+        }
+        .actions a.delete_student {
+            color: #dc3545;
+        }
+        .actions a.delete_student:hover {
+            text-decoration: underline;
+        }
+        .logout {
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Student Records</h1>
+        {% if user.is_superuser %}
+            <a href="{% url 'add_student' %}" class="button">Add Student</a>
+        {% endif %}
+        <form method="post" action="{% url 'logout' %}" class="logout">
+            {% csrf_token %}
+            <button type="submit" class="button">Logout</button>
+        </form>
+        <table id="students_table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                    <tr id="student_{{ student.id }}">
+                        <td><a href="{% url 'student_detail' student.id %}">{{ student.name }}</a></td>
+                        <td class="actions">
+                            {% if user.is_superuser %}
+                                <a href="{% url 'edit_student' student.id %}">Edit</a>
+                                <a href="#" class="delete_student" data-id="{{ student.id }}">Delete</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('.delete_student').click(function(e) {
+                e.preventDefault(); // Prevent default link behavior
+                var student_id = $(this).data('id');
+                $.ajax({
+                    url: '/delete/' + student_id + '/',
+                    type: 'GET',
+                    success: function(response) {
+                        $('#student_' + student_id).remove();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
